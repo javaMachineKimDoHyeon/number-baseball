@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>숫자야구</title>
+</head>
+
+<body>
+    <form id="form">
+        <input type="text" id="input">
+        <button>확인</button>
+    </form>
+    <div id="logs"></div>
+    <script>
+        const $input = document.querySelector('input');
+        const $form = document.querySelector('form');
+        const $logs = document.querySelector('#logs');
+
+        const numbers = []; // 1, 2, 3, 4, 5, 6, 7, 8, 9
+        for (let n = 0; n < 9; n += 1) {
+            numbers.push(n + 1);
+        }
+
+        const answer = [];
+        for (let n = 0; n < 4; n += 1) {
+            const index = Math.floor(Math.random() * numbers.length) // 0 ~ 8 정수
+            answer.push(numbers[index]);
+            numbers.splice(index, 1);
+        }
+        console.log(answer);
+
+        const tries = [];
+        function checkInput(input) { // 검사하는 코드
+            if (input.length !== 4) { // 4자리가 아닌가?
+                return alert('4자리 숫자를 입력해 주세요.');
+            }
+            if (new Set(input).size !== 4) { // 중복된 숫자가 있는가 / Set은 중복이 안되는 배열임 중복되면 안들어가니 size가 1~3일것
+                return alert('중복되지 않게 입력해 주세요.');
+            }
+            if (tries.includes(input)) { // 이미 시도한 값은 아닌가 / 위에 배열 만들어 놨음. includes(input) 이미 포함 되어 있는 값이면 걸러주기
+                return alert('이미 시도한 값입니다.')
+            }
+            return true;
+        }
+        // button은 click이라면
+        // form태그는 submit이라는 이벤트가 발생함. 서버로 데이터를 넘기고 새로고침 되는거임
+        $form.addEventListener('submit', (event) => {
+            event.preventDefault(); // 기본 동작 막기 (새로고침하면 기껏 뽑은 4개 정수가 날라가니까 안날라가게 기능 끈거임)
+            const value = $input.value;
+            $input.value = '';
+            if (!checkInput(value)) {
+                return
+            }
+            // 입력값 문제 없음
+            if (answer.join('') === value) { // ex) [3, 1, 4, 6] -> '3146' / 배열을 문자열로 바꾸는 메서드 .join('')
+                $logs.textContent = '홈런!'; // join은 ()안에 어떻게 붙일지 정하는 거임
+                return;                     // join(':') 하면 "3:1:4:6"이 됨. 그래서 아무것도 안넣은 () 하면 "3146"이렇게 됨
+            }
+            if (tries.length >= 9) {
+                const message = document.createTextNode(`패배! 정답은 ${answer.join('')}`)
+                $logs.appendChild(message);
+                return;
+            }
+            // 몇 스트라이크 몇 볼인지 검사
+            let strike = 0;
+            let ball = 0;
+            // ex) answer: 3146, value: 1347
+            for (let i = 0; i < answer.length; i++) {
+                const index = value.indexOf(answer[i]);
+                if (index > -1) { // 일치하는 숫자 발견
+                    if (index === i) { // 자릿수도 같음
+                        strike += 1;
+                    } else { // 숫자만 같음
+                        ball += 1;
+                    }
+                }
+            }
+            $logs.append(`${value}: ${strike} 스트라이크 ${ball} 볼`, document.createElement('br'));
+            tries.push(value);
+        });
+    </script>
+</body>
+
+</html>
